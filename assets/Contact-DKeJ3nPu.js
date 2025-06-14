@@ -1,0 +1,1 @@
+import{j as t}from"./animations-BwczAmF4.js";import{r as o}from"./vendor-DLdglawL.js";import{C as r}from"./index-BlA-RhAp.js";import"./state-BCD9vpg1.js";import"./icons-Dsfe-cqA.js";const m=()=>t.jsx("div",{className:"flex flex-col w-full min-h-[calc(100vh-4rem)]",children:t.jsx(r,{})}),l=o.memo(m);export{l as default};
