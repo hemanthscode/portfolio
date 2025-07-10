@@ -1,25 +1,68 @@
-export const theme = {
+// src/styles/theme.ts
+import { Theme } from '@/types/theme.types';
+
+interface ThemeConfig {
   colors: {
     light: {
-      background: 'var(--color-background)',
-      foreground: 'var(--color-foreground)',
-      primary: 'var(--color-primary)',
-      primaryHover: 'var(--color-primary-hover)',
-      muted: 'var(--color-muted)',
-      mutedForeground: 'var(--color-muted-foreground)',
-      border: 'var(--color-border)',
+      primary: string;
+      secondary: string;
+      accent: string;
+      background: string;
+      text: {
+        primary: string;
+        secondary: string;
+      };
+    };
+    dark: {
+      primary: string;
+      secondary: string;
+      accent: string;
+      background: string;
+      text: {
+        primary: string;
+        secondary: string;
+      };
+    };
+  };
+  fontFamily: {
+    sans: string[];
+  };
+  fontSize: Record<string, string>;
+  spacing: Record<string, string>;
+  borderRadius: Record<string, string>;
+  transition: {
+    default: string;
+    hover: string;
+  };
+}
+
+export const theme: ThemeConfig = {
+  colors: {
+    light: {
+      primary: '#1D4ED8',
+      secondary: '#60A5FA',
+      accent: '#F59E0B',
+      background: '#F9FAFB',
+      text: {
+        primary: '#111827',
+        secondary: '#6B7280',
+      },
     },
     dark: {
-      background: 'var(--color-background)',
-      foreground: 'var(--color-foreground)',
-      primary: 'var(--color-primary)',
-      primaryHover: 'var(--color-primary-hover)',
-      muted: 'var(--color-muted)',
-      mutedForeground: 'var(--color-muted-foreground)',
-      border: 'var(--color-border)',
+      primary: '#3B82F6',
+      secondary: '#9CA3AF',
+      accent: '#F59E0B',
+      background: '#0F172A',
+      text: {
+        primary: '#F9FAFB',
+        secondary: '#D1D5DB',
+      },
     },
   },
-  fontSizes: {
+  fontFamily: {
+    sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+  },
+  fontSize: {
     xs: '0.75rem',
     sm: '0.875rem',
     base: '1rem',
@@ -38,11 +81,34 @@ export const theme = {
     lg: '1.5rem',
     xl: '2rem',
     '2xl': '3rem',
-    '3xl': '4rem',
+    '3xl': '5rem',
   },
-  shadows: {
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    lg: '0 10px 20px -3px rgba(0, 0, 0, 0.1)',
+  borderRadius: {
+    sm: '0.25rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
   },
+  transition: {
+    default: 'all 0.3s ease-out',
+    hover: 'transform 0.2s ease-out',
+  },
+};
+
+// Apply theme variables to :root
+const applyTheme = (themeMode: Theme) => {
+  const colors = theme.colors[themeMode];
+  Object.entries(colors).forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      document.documentElement.style.setProperty(`--color-${key}`, value);
+    } else {
+      Object.entries(value).forEach(([subKey, subValue]) => {
+        document.documentElement.style.setProperty(`--color-${key}-${subKey}`, subValue);
+      });
+    }
+  });
+};
+
+export const initializeTheme = (themeMode: Theme) => {
+  applyTheme(themeMode);
 };

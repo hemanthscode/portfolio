@@ -1,66 +1,39 @@
-import { NavItem, SocialLink, Project } from '@/types';
+// src/utils/constants.ts
+import { NavItem } from '@/types/nav.types';
+import { Project } from '@/types/project.types';
 
-export const navItems: NavItem[] = [
-  { name: 'about', path: '/about', title: 'About' },
-  { name: 'work', path: '/work', title: 'Work' },
-  { name: 'contact', path: '/contact', title: 'Contact' },
+export enum ProjectCategory {
+  All = 'all',
+  Web = 'web',
+  Mobile = 'mobile',
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  { label: 'About', href: '/about' },
+  { label: 'Work', href: '/work' },
+  { label: 'Contact', href: '/contact' },
 ];
 
-export const socialLinks: SocialLink[] = [
+export const PROJECTS: Project[] = [
   {
-    name: 'github',
-    href: 'https://github.com/hemanth-kumar',
-    title: 'GitHub Profile',
-    label: 'Visit GitHub profile',
-    icon: 'github',
+    id: '1',
+    title: 'Project One',
+    description: 'A modern web application built with React and TypeScript.',
+    image: '/assets/projects/project1.jpg',
+    link: 'https://example.com/project1',
+    category: ProjectCategory.Web,
   },
   {
-    name: 'twitter',
-    href: 'https://twitter.com/hemanth_kumar',
-    title: 'Twitter Profile',
-    label: 'Visit Twitter profile',
-    icon: 'twitter',
-  },
-  {
-    name: 'email',
-    href: 'mailto:hemanth.kumar@example.com',
-    title: 'Send Email',
-    label: 'Send an email',
-    icon: 'mail',
-  },
-];
-
-export const projects: Project[] = [
-  {
-    title: 'E-Commerce Platform',
-    description: 'A modern e-commerce platform with advanced filtering and search capabilities.',
-    image: 'https://i.pinimg.com/736x/44/63/9c/44639cacc0d8c28a3cc4545448977d46.jpg',
-    github: 'https://github.com/hemanth-kumar/ecommerce',
-    live: 'https://ecommerce.hemanth.dev',
-  },
-  {
-    title: 'Chat Application',
-    description: 'A real-time chat application with end-to-end encryption.',
-    image: 'https://i.pinimg.com/736x/1c/e4/dc/1ce4dcaf1decc268b3c306ab845f6df5.jpg',
-    github: 'https://github.com/hemanth-kumar/chat-app',
-    live: 'https://chat.hemanth.dev',
-  },
-  {
-    title: 'Data Dashboard',
-    description: 'A dashboard for visualizing complex datasets with interactive charts.',
-    image: 'https://i.pinimg.com/736x/8d/36/10/8d3610af570c7016c645396132addd59.jpg',
-    github: 'https://github.com/hemanth-kumar/dashboard',
-    live: 'https://dashboard.hemanth.dev',
+    id: '2',
+    title: 'Project Two',
+    description: 'A mobile app with seamless user experience.',
+    image: '/assets/projects/project2.jpg',
+    link: 'https://example.com/project2',
+    category: ProjectCategory.Mobile,
   },
 ];
 
-export const skills: string[] = [
-  'React',
-  'TypeScript',
-  'Tailwind CSS',
-  'Node.js',
-  'GraphQL',
-  'Next.js',
-  'Vite',
-  'Framer Motion',
+export const SOCIAL_LINKS: { href: string; name: 'Github' | 'Linkedin'; label: string }[] = [
+  { href: 'https://github.com', name: 'Github', label: 'GitHub Profile' },
+  { href: 'https://linkedin.com', name: 'Linkedin', label: 'LinkedIn Profile' },
 ];

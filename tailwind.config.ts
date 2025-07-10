@@ -1,55 +1,97 @@
-import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 
 export default {
-  content: ['./src/**/*.{js,jsx,ts,tsx,html}'],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        accent: 'var(--color-accent)',
         background: 'var(--color-background)',
-        foreground: 'var(--color-foreground)',
-        primary: {
-          DEFAULT: 'var(--color-primary)',
-          hover: 'var(--color-primary-hover)',
-        },
-        muted: {
-          DEFAULT: 'var(--color-muted)',
-          foreground: 'var(--color-muted-foreground)',
-        },
-        border: 'var(--color-border)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+      },
+      fontFamily: {
+        sans: ['var(--font-family-sans)'],
       },
       fontSize: {
-        xs: '0.75rem',
-        sm: '0.875rem',
-        base: '1rem',
-        lg: '1.125rem',
-        xl: '1.25rem',
-        '2xl': '1.5rem',
-          '3xl': '1.875rem',
-          '4xl': '2.25rem',
-          '5xl': '3rem',
-          '6xl': '3.75rem',
-        '7xl': '4.5rem',
+        xs: 'var(--font-size-xs)',
+        sm: 'var(--font-size-sm)',
+        base: 'var(--font-size-base)',
+        lg: 'var(--font-size-lg)',
+        xl: 'var(--font-size-xl)',
+        '2xl': 'var(--font-size-2xl)',
+        '3xl': 'var(--font-size-3xl)',
+        '4xl': 'var(--font-size-4xl)',
+        '5xl': 'var(--font-size-5xl)',
+        '6xl': 'var(--font-size-6xl)',
       },
       spacing: {
-        xs: '0.25rem',
-        sm: '0.5rem',
-        md: '1rem',
-        lg: '1.5rem',
-        xl: '2rem',
-        '2xl': '3rem',
-        '3xl': '4rem',
-        '4xl': '5rem',
+        xs: 'var(--spacing-xs)',
+        sm: 'var(--spacing-sm)',
+        md: 'var(--spacing-md)',
+        lg: 'var(--spacing-lg)',
+        xl: 'var(--spacing-xl)',
+        '2xl': 'var(--spacing-2xl)',
+        '3xl': 'var(--spacing-3xl)',
       },
-      boxShadow: {
-        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+      borderRadius: {
+        sm: 'var(--border-radius-sm)',
+        md: 'var(--border-radius-md)',
+        lg: 'var(--border-radius-lg)',
+        xl: 'var(--border-radius-xl)',
+      },
+      transitionProperty: {
+        default: 'all',
+      },
+      transitionTimingFunction: {
+        'ease-out': 'ease-out',
+      },
+      transitionDuration: {
+        default: 'var(--transition-duration-default)',
+        hover: 'var(--transition-duration-hover)',
       },
       animation: {
-        'spin-slow': 'spin 1.5s linear infinite',
+        'fade-in': 'fadeIn var(--animation-duration) ease-out',
+        'scale-up': 'scaleUp var(--animation-duration-short) ease-out',
+        'slide-in': 'slideIn var(--animation-duration) ease-out',
+        'typewriter': 'typewriter var(--animation-duration-long) steps(40) 1s 1 normal both',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(var(--spacing-md))' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scaleUp: {
+          '0%': { transform: 'scale(1)' },
+          '100%': { transform: 'scale(1.05)' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        typewriter: {
+          '0%': { width: '0' },
+          '100%': { width: '100%' },
+        },
       },
     },
   },
-  plugins: [],
-} satisfies Config;
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    plugin(function ({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-hidden': {
+          'scrollbar-width': 'none',
+          '-ms-overflow-style': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+      });
+    }),
+  ],
+};
