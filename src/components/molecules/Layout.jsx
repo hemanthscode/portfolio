@@ -1,19 +1,23 @@
-import React, { memo } from 'react';
-import PropTypes from 'prop-types';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import { containerPadding } from '../../constants/theme';
+import React, { memo } from "react";
+import PropTypes from "prop-types";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import { theme } from "../../constants/theme";
 
 /**
- * Layout component for consistent page structure
+ * Layout component for consistent page structure with header and footer.
  * @param {Object} props
- * @param {React.ReactNode} props.children - Page content
+ * @param {React.ReactNode} props.children - Page content.
  * @returns {JSX.Element}
+ * @example
+ * <Layout><HomePage /></Layout>
  */
 const Layout = ({ children }) => (
-  <div className="flex flex-col min-h-screen">
+  <div className={`flex flex-col min-h-screen ${theme.colors.background}`}>
     <Navbar />
-    <main className={`flex-grow ${containerPadding} py-6`}>{children}</main>
+    <main className={`flex-grow ${theme.spacing.container} ${theme.spacing.section}`}>
+      {children}
+    </main>
     <Footer />
   </div>
 );

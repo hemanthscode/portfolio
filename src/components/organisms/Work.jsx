@@ -1,23 +1,26 @@
-import React, { memo } from 'react';
-import Card from '../atoms/Card';
-import { projects } from '../../data';
-import { containerPadding, typography } from '../../constants/theme';
+import React, { memo } from "react";
+import Card from "../atoms/Card";
+import { projects } from "../../data";
+import { theme } from "../../constants/theme";
 
 /**
- * Work section displaying project cards
+ * Work section displaying project cards in a responsive grid.
  * @returns {JSX.Element}
+ * @example
+ * <Work />
  */
 const Work = () => (
   <section
     id="work"
-    className={`flex w-full ${containerPadding} min-h-screen items-center justify-center py-12`}
+    className={`w-full ${theme.spacing.container} ${theme.spacing.section} min-h-screen flex items-center justify-center ${theme.colors.background}`}
     aria-labelledby="work-heading"
+    role="region"
   >
-    <div className="flex flex-col w-full max-w-6xl text-center gap-8">
-      <h2 id="work-heading" className={typography.heading.h2}>
+    <div className={`max-w-6xl mx-auto flex flex-col ${theme.spacing.gap.lg} text-center`}>
+      <h2 id="work-heading" className={`${theme.typography.heading.h2}`}>
         My Work
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid ${theme.grid.projectGrid} ${theme.spacing.gap.md}`}>
         {projects.map((project) => (
           <Card key={project.id} project={project} />
         ))}

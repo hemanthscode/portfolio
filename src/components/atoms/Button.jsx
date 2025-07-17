@@ -2,20 +2,23 @@ import React, { memo } from "react";
 import { NavLink } from "react-router-dom";
 import PropTypes from "prop-types";
 import Icon from "./Icon";
-import { buttonVariants } from "../../constants/theme";
+import { theme } from "../../constants/theme";
 
 /**
- * Versatile button with internal/external link support
+ * Versatile button with internal/external link support.
  * @param {Object} props
- * @param {'primary' | 'secondary' | 'outline' | 'ghost'} props.variant - Button style variant
- * @param {string} props.to - Navigation or external URL
- * @param {string} props.target - Link target (_self, _blank, etc.)
- * @param {string} props.icon - Lucide icon name
- * @param {string} props.className - Additional Tailwind classes
- * @param {React.ReactNode} props.children - Button content
- * @param {boolean} props.disabled - Disable button
- * @param {string} props.type - Button type (button, submit, reset)
+ * @param {'primary' | 'secondary' | 'outline' | 'ghost'} props.variant - Button style variant.
+ * @param {string} props.to - Navigation or external URL.
+ * @param {string} props.target - Link target (_self, _blank, etc.).
+ * @param {string} props.icon - Lucide icon name.
+ * @param {string} props.className - Additional Tailwind classes.
+ * @param {React.ReactNode} props.children - Button content.
+ * @param {boolean} props.disabled - Disable button.
+ * @param {string} props.type - Button type (button, submit, reset).
+ * @param {Object} props.rest - Additional props for the underlying element.
  * @returns {JSX.Element}
+ * @example
+ * <Button variant="primary" to="/work" icon="ExternalLink">View Work</Button>
  */
 const Button = ({
   variant = "primary",
@@ -26,45 +29,37 @@ const Button = ({
   children,
   disabled = false,
   type = "button",
-  ...props
+  ...rest
 }) => {
-  const baseStyles =
-    "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2";
-  
-  const buttonStyles = `${baseStyles} ${
-    buttonVariants[variant] || buttonVariants.primary
-  } ${className}`;
-
+  const isDisabled = disabled || to === "#" || to === "";
+  const baseStyles = `inline-flex items-center justify-center px-4 py-2 ${theme.borderRadius.default} ${theme.typography.body.base} ${theme.transition.default} disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme.colors.focusRing}`;
+  const buttonStyles = `${baseStyles} ${theme.colors[variant] || theme.colors.primary} ${className}`;
+  const iconStyles = variant === "primary" ? theme.colors.iconPrimary : theme.colors.iconSecondary;
   const isExternal = to && /^https?:\/\//.test(to);
 
   const content = (
     <>
-      {icon && <Icon name={icon} size={20} className="mr-2" />}
+      {icon && <Icon name={icon} size={20} className={`mr-2 ${iconStyles}`} />}
       {children}
     </>
   );
 
   const commonProps = {
     className: buttonStyles,
-    "aria-label": children?.toString() || "Button",
-    "aria-disabled": disabled,
-    disabled,
-    ...props,
+    "aria-label": typeof children === "string" ? children : rest["aria-label"] || "Button",
+    "aria-disabled": isDisabled,
+    disabled: isDisabled,
+    ...rest,
   };
 
-  // If no 'to' prop, render as button element (for forms)
   if (!to) {
     return (
-      <button
-        type={type}
-        {...commonProps}
-      >
+      <button type={type} {...commonProps}>
         {content}
       </button>
     );
   }
 
-  // External link
   if (isExternal) {
     return (
       <a
@@ -78,12 +73,8 @@ const Button = ({
     );
   }
 
-  // Internal navigation link
   return (
-    <NavLink 
-      to={to} 
-      {...commonProps}
-    >
+    <NavLink to={to} end {...commonProps}>
       {content}
     </NavLink>
   );

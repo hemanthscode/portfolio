@@ -1,10 +1,16 @@
-import React from 'react';
-import Work from '../components/organisms/Work';
+import React, { memo } from "react";
+import Work from "../components/organisms/Work";
 
 /**
- * Work page rendering the Work section
+ * Work page rendering the Work section.
  * @returns {JSX.Element}
+ * @example
+ * <WorkPage />
  */
-const WorkPage = () => <Work />;
+const WorkPage = () => (
+  <main role="main">
+    <Work />
+  </main>
+);
 
-export default WorkPage;
+export default memo(WorkPage);

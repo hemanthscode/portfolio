@@ -1,23 +1,27 @@
-import React, { memo } from 'react';
-import Button from '../components/atoms/Button';
-import { containerPadding, typography } from '../constants/theme';
+import React, { memo } from "react";
+import Button from "../components/atoms/Button";
+import { theme } from "../constants/theme";
 
 /**
- * 404 page for handling invalid routes
+ * 404 page for handling invalid routes.
  * @returns {JSX.Element}
+ * @example
+ * <NotFoundPage />
  */
 const NotFoundPage = () => (
-  <section className={`flex w-full ${containerPadding} min-h-screen items-center justify-center bg-gray-50`}>
-    <div className="flex flex-col w-full max-w-4xl text-center gap-6">
-      <h2 className={typography.heading.h2}>404 - Page Not Found</h2>
-      <p className={`${typography.body.base} text-gray-500`}>
+  <section
+    className={`w-full ${theme.spacing.container} ${theme.spacing.section} min-h-screen flex items-center justify-center ${theme.colors.background}`}
+    aria-labelledby="not-found-heading"
+    role="region"
+  >
+    <div className={`max-w-4xl mx-auto flex flex-col ${theme.spacing.gap.md} text-center`}>
+      <h2 id="not-found-heading" className={`${theme.typography.heading.h2}`}>
+        404 - Page Not Found
+      </h2>
+      <p className={`${theme.typography.body.base} ${theme.colors.text.secondary}`}>
         Sorry, the page you’re looking for doesn’t exist.
       </p>
-      <Button
-        variant="primary"
-        to="/"
-        aria-label="Return to Home"
-      >
+      <Button variant="primary" to="/" aria-label="Return to Home">
         Back to Home
       </Button>
     </div>

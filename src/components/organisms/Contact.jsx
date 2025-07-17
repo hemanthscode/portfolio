@@ -1,22 +1,28 @@
-import { useState, useRef } from 'react';
-import Input from '../atoms/Input';
-import Button from '../atoms/Button';
-import DOMPurify from 'dompurify';
-import emailjs from '@emailjs/browser';
-import { containerPadding, typography } from '../../constants/theme';
+import React, { memo, useState, useRef } from "react";
+import Input from "../atoms/Input";
+import Button from "../atoms/Button";
+import Icon from "../atoms/Icon";
+import DOMPurify from "dompurify";
+import emailjs from "@emailjs/browser";
+import { theme } from "../../constants/theme";
 
-const initialForm = { name: '', email: '', message: '' };
+const initialForm = { name: "", email: "", message: "" };
 
-
-function Contact() {
+/**
+ * Contact section with form and toast notifications.
+ * @returns {JSX.Element}
+ * @example
+ * <Contact />
+ */
+const Contact = () => {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState({ type: '', message: '' });
+  const [toast, setToast] = useState({ type: "", message: "" });
   const [sending, setSending] = useState(false);
   const toastTimer = useRef();
 
   const clearToast = () => {
-    setToast({ type: '', message: '' });
+    setToast({ type: "", message: "" });
   };
 
   const showToast = (type, message) => {
@@ -25,19 +31,18 @@ function Contact() {
     toastTimer.current = setTimeout(clearToast, 5000);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-    setErrors((err) => ({ ...err, [name]: null })); // clear field error
-    clearToast(); // hide toast when user starts typing
+  const handleChange = ({ target: { name, value } }) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: null }));
+    clearToast();
   };
 
   const validate = () => {
-    let errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
+    const errs = {};
+    if (!form.name.trim()) errs.name = "Name is required";
     if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/i.test(form.email.trim()))
-      errs.email = 'Valid email is required';
-    if (!form.message.trim()) errs.message = 'Message is required';
+      errs.email = "Valid email is required";
+    if (!form.message.trim()) errs.message = "Message is required";
     return errs;
   };
 
@@ -53,10 +58,11 @@ function Contact() {
       return;
     }
 
-    const { VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, VITE_EMAILJS_PUBLIC_KEY } = import.meta.env;
+    const { VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, VITE_EMAILJS_PUBLIC_KEY } =
+      import.meta.env;
 
     if (!VITE_EMAILJS_SERVICE_ID || !VITE_EMAILJS_TEMPLATE_ID || !VITE_EMAILJS_PUBLIC_KEY) {
-      showToast('error', 'Service error: Contact admin.');
+      showToast("error", "Service error: Contact admin.");
       setSending(false);
       return;
     }
@@ -66,17 +72,21 @@ function Contact() {
       email: DOMPurify.sanitize(form.email.trim()),
       message: DOMPurify.sanitize(form.message.trim()),
       time: new Date().toISOString(),
-      title: 'Portfolio Contact Form',
+      title: "Portfolio Contact Form",
     };
 
     try {
-      await emailjs.send(VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, payload, VITE_EMAILJS_PUBLIC_KEY);
-
+      await emailjs.send(
+        VITE_EMAILJS_SERVICE_ID,
+        VITE_EMAILJS_TEMPLATE_ID,
+        payload,
+        VITE_EMAILJS_PUBLIC_KEY
+      );
       setForm(initialForm);
-      showToast('success', "Message sent! I'll get back to you soon.");
+      showToast("success", "Message sent! I'll get back to you soon.");
     } catch (err) {
-      console.error(err);
-      showToast('error', 'Failed to send message. Please try again.');
+      console.error("EmailJS error:", err);
+      showToast("error", "Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }
@@ -85,23 +95,23 @@ function Contact() {
   return (
     <section
       id="contact"
-      className={`flex w-full ${containerPadding} min-h-screen items-center justify-center py-12 bg-gray-50`}
+      className={`w-full ${theme.spacing.container} ${theme.spacing.section} min-h-screen flex items-center justify-center ${theme.colors.background}`}
       aria-labelledby="contact-heading"
+      role="region"
     >
-      <div className="flex flex-col w-full max-w-3xl text-center gap-8">
-        <div className="flex flex-col gap-4">
-          <h2 id="contact-heading" className={typography.heading.h2}>
+      <div className={`max-w-3xl mx-auto flex flex-col ${theme.spacing.gap.lg} text-center`}>
+        <div className={`flex flex-col ${theme.spacing.gap.sm}`}>
+          <h2 id="contact-heading" className={`${theme.typography.heading.h2}`}>
             Get in Touch
           </h2>
-          <p className={`${typography.body.base} max-w-xl mx-auto text-gray-500`}>
+          <p className={`${theme.typography.body.base} max-w-xl mx-auto ${theme.colors.text.secondary}`}>
             Have a project in mind? Let&apos;s collaborate! Send me a message and I&apos;ll get back to you soon.
           </p>
         </div>
-
-        <form
-          className="flex flex-col w-full max-w-xl mx-auto gap-6 text-left"
-          onSubmit={handleSubmit}
-          noValidate
+        <div
+          className={`w-full max-w-xl mx-auto flex flex-col ${theme.spacing.gap.md} text-left`}
+          role="form"
+          aria-label="Contact form"
         >
           <Input
             id="name"
@@ -127,70 +137,72 @@ function Contact() {
             required
           />
           <div className="relative w-full">
-            <label htmlFor="message" className="sr-only">Message</label>
+            <label htmlFor="message" className="sr-only">
+              Message
+            </label>
             <textarea
               id="message"
               name="message"
               placeholder="Your Message"
               value={form.message}
               onChange={handleChange}
-              className={`w-full px-4 py-3 h-32 resize-none rounded-lg border bg-white ${typography.body.base} text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                errors.message ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-3 h-32 resize-none ${theme.borderRadius.default} ${theme.colors.border} ${theme.colors.background} ${theme.typography.body.base} ${theme.colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 ${theme.colors.focusRing} ${theme.transition.default} ${
+                errors.message ? theme.colors.error : ""
               } disabled:opacity-50`}
               aria-invalid={!!errors.message}
-              aria-describedby={errors.message ? 'message-error' : undefined}
+              aria-describedby={errors.message ? "message-error" : undefined}
               disabled={sending}
               required
             />
             {errors.message && (
-              <p id="message-error" className={`${typography.body.sm} mt-1 text-red-500`}>
-                {errors.message}
-              </p>
+              <p
+                id="message-error"
+                className={`${theme.typography.body.sm} mt-1 ${theme.colors.text.error}`}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(errors.message) }}
+              />
             )}
           </div>
           <Button
             variant="primary"
             type="submit"
-            aria-label={sending ? 'Sending message...' : 'Submit contact form'}
-            className={`self-center min-w-32 ${sending ? 'cursor-not-allowed' : ''}`}
+            aria-label={sending ? "Sending message..." : "Submit contact form"}
+            className={`self-center min-w-32 ${sending ? "cursor-not-allowed" : ""}`}
             disabled={sending}
+            onClick={handleSubmit}
           >
             {sending ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
+                <Icon name="LoaderCircle" size={16} className="animate-spin" />
                 Sending...
               </span>
-            ) : 'Send Message'}
+            ) : (
+              "Send Message"
+            )}
           </Button>
-
           {toast.message && (
             <div
               role="status"
               aria-live="polite"
-              className={`
-                ${typography.body.sm}
-                text-center p-4 rounded-lg border shadow-sm animate-fade-in
-                ${toast.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : ''}
-                ${toast.type === 'error' ? 'bg-red-50 text-red-700 border-red-200' : ''}
-              `}
+              className={`p-4 ${theme.borderRadius.default} ${theme.colors.border} ${theme.shadow.default} animate-fade-in ${theme.typography.body.sm} text-center ${
+                toast.type === "success"
+                  ? theme.colors.toastSuccess
+                  : theme.colors.toastError
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
-                {toast.type === 'success'
-                  ? <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  : toast.type === 'error'
-                  ? <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  : null}
+                <Icon
+                  name={toast.type === "success" ? "CheckCircle" : "AlertCircle"}
+                  size={20}
+                  className={toast.type === "success" ? theme.colors.text.success : theme.colors.text.error}
+                />
                 <span>{toast.message}</span>
               </div>
             </div>
           )}
-        </form>
+        </div>
       </div>
     </section>
   );
-}
+};
 
-export default Contact;
+export default memo(Contact);
