@@ -19,7 +19,7 @@ export default [
     },
     settings: {
       react: {
-        version: '19.1',
+        version: '19.1', // Specify React 19 for eslint-plugin-react
       },
     },
     plugins: {
@@ -31,6 +31,7 @@ export default [
       ...js.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
+      'react/react-in-jsx-scope': 'off', // Disable for React 19
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       'react/prop-types': 'error',

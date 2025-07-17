@@ -18,8 +18,9 @@ import { typography } from '../../constants/theme';
  */
 const Input = ({ id, name, type = 'text', placeholder, value, onChange, error, className = '', ...props }) => {
   const handleChange = (e) => {
-    const sanitizedValue = DOMPurify.sanitize(e.target.value);
-    onChange({ ...e, target: { ...e.target, value: sanitizedValue } });
+    // Don't sanitize during typing - just pass the raw value
+    // Sanitization should happen at form submission, not during input
+    onChange(e);
   };
 
   return (
@@ -31,13 +32,15 @@ const Input = ({ id, name, type = 'text', placeholder, value, onChange, error, c
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
-        className={`w-full px-4 py-3 rounded-lg border bg-white ${typography.body.base} text-gray-800 ${error ? 'border-error' : 'border-gray-300'} ${className}`}
+        className={`w-full px-4 py-3 rounded-lg border bg-white ${typography.body.base} text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 ${error ? 'border-error' : 'border-gray-300'} ${className}`}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
         {...props}
       />
       {error && (
-        <p id={`${id}-error`} className={`mt-1 ${typography.body.sm} text-error`}>{DOMPurify.sanitize(error)}</p>
+        <p id={`${id}-error`} className={`mt-1 ${typography.body.sm} text-error`}>
+          {DOMPurify.sanitize(error)}
+        </p>
       )}
     </div>
   );
