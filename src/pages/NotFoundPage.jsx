@@ -1,31 +1,26 @@
 import React, { memo } from "react";
 import Button from "../components/atoms/Button";
-import { theme } from "../constants/theme";
+import Icon from "../components/atoms/Icon";
 
-/**
- * 404 page for handling invalid routes.
- * @returns {JSX.Element}
- * @example
- * <NotFoundPage />
- */
 const NotFoundPage = () => (
-  <section
-    className={`w-full ${theme.spacing.container} ${theme.spacing.section} min-h-screen flex items-center justify-center ${theme.colors.background}`}
-    aria-labelledby="not-found-heading"
-    role="region"
-  >
-    <div className={`max-w-4xl mx-auto flex flex-col ${theme.spacing.gap.md} text-center`}>
-      <h2 id="not-found-heading" className={`${theme.typography.heading.h2}`}>
-        404 - Page Not Found
-      </h2>
-      <p className={`${theme.typography.body.base} ${theme.colors.text.secondary}`}>
-        Sorry, the page you’re looking for doesn’t exist.
-      </p>
-      <Button variant="primary" to="/" aria-label="Return to Home">
-        Back to Home
-      </Button>
+  <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 sm:px-6 lg:px-8">
+    <div className="text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <Icon name="AlertTriangle" size={64} className="text-gray-400 mx-auto mb-6" />
+        <h1 className="text-4xl sm:text-5xl font-bold text-gray-100 mb-4">404 - Page Not Found</h1>
+        <p className="text-lg text-gray-400 mb-8 max-w-md mx-auto">
+          Oops! The page you're looking for doesn't exist or has been moved.
+        </p>
+        <Button variant="primary" to="/" icon="ArrowLeft" size="lg">
+          Back to Home
+        </Button>
+      </motion.div>
     </div>
-  </section>
+  </div>
 );
 
 export default memo(NotFoundPage);

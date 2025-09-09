@@ -1,113 +1,178 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { memo, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../atoms/Icon";
 import { navLinks } from "../../data";
-import { theme } from "../../constants/theme";
 
-/**
- * Responsive navigation bar with mobile menu.
- * @returns {JSX.Element}
- * @example
- * <Navbar />
- */
 const Navbar = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const toggleMenu = useCallback(() => {
-    setMenuOpen((prev) => {
-      const newState = !prev;
-      document.body.classList.toggle("overflow-hidden", newState);
-      return newState;
-    });
+  useEffect(() => {
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    return () => document.body.classList.remove("overflow-hidden");
-  }, []);
+    setIsOpen(false);
+    document.body.style.overflow = 'unset';
+  }, [location.pathname]);
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+    setIsOpen(false);
+  };
+
+  const toggleMenu = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    document.body.style.overflow = newState ? 'hidden' : 'unset';
+  };
 
   return (
     <>
-      <header
-        className={`fixed inset-x-0 top-0 z-50 ${theme.colors.background}/80 ${theme.colors.backdropBlur} ${theme.colors.border} border-b`}
-        aria-label="Main navigation"
-        role="banner"
-      >
-        <nav
-          className={`max-w-7xl mx-auto ${theme.spacing.container} ${theme.spacing.navPadding} flex justify-between items-center`}
-        >
-          <NavLink
-            to="/"
-            onClick={() => {
-              setMenuOpen(false);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className={`flex items-center ${theme.spacing.gap.sm} ${theme.typography.heading.h3} ${theme.colors.text.primary}`}
-            aria-label="Portfolio Home"
+      {/* Mobile Menu Overlay - moved above header to fix layering */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 w-screen h-screen bg-gray-950/98 backdrop-blur-xl z-[9998] lg:hidden"
           >
-            <Icon name="Origami" size={32} />
-            <span>Hemanth</span>
-          </NavLink>
-          <ul className={`hidden md:flex items-center ${theme.spacing.gap.md}`}>
-            {navLinks.map((link) => (
-              <li key={link.name}>
+            {/* Mobile menu content positioned below the header */}
+            <div className="flex flex-col h-full justify-center text-center px-8 pt-20">
+              <nav className="space-y-8">
+                {navLinks.map((link, index) => (
+                  <motion.div
+                    key={link.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
+                  >
+                    <NavLink
+                      to={link.to}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `block text-3xl font-bold transition-colors duration-300 ${
+                          isActive 
+                            ? 'text-blue-400' 
+                            : 'text-gray-300 hover:text-white'
+                        }`
+                      }
+                    >
+                      {link.name}
+                    </NavLink>
+                  </motion.div>
+                ))}
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="pt-8"
+                >
+                  <a
+                    href="/resume.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsOpen(false)}
+                    className="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-lg rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-200"
+                  >
+                    Download Resume
+                  </a>
+                </motion.div>
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header with highest z-index to stay above mobile menu */}
+      <header 
+        className={`fixed top-0 left-0 right-0 w-full transition-all duration-300 ease-out z-[9999] ${
+          scrolled 
+            ? 'bg-gray-950/95 backdrop-blur-xl border-b border-gray-800/50' 
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex items-center justify-between h-16">
+            {/* Logo - Always visible and clickable */}
+            <button
+              onClick={handleLogoClick}
+              className="flex items-center space-x-3 text-gray-100 hover:text-blue-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-1 relative z-[10001]"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Icon name="Code2" size={16} className="text-white" />
+              </div>
+              <span className="text-lg font-bold hidden sm:block">Hemanth</span>
+            </button>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-8">
+              {navLinks.map((link) => (
                 <NavLink
+                  key={link.name}
                   to={link.to}
-                  end
                   className={({ isActive }) =>
-                    `${theme.typography.body.base} font-bold ${
-                      theme.transition.default
-                    } ${
-                      isActive
-                        ? theme.colors.text.primary
-                        : `${theme.colors.text.secondary} hover:${theme.colors.text.primary}`
+                    `text-sm font-medium transition-colors duration-200 ${
+                      isActive 
+                        ? 'text-blue-400' 
+                        : 'text-gray-300 hover:text-gray-100'
                     }`
                   }
                 >
                   {link.name}
                 </NavLink>
-              </li>
-            ))}
-          </ul>
-          <button
-            className={`md:hidden p-2 ${theme.borderRadius.default} ${theme.transition.default} hover:bg-gray-100`}
-            onClick={toggleMenu}
-            aria-label={
-              menuOpen ? "Close navigation menu" : "Open navigation menu"
-            }
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-          >
-            <Icon name={menuOpen ? "X" : "Menu"} size={28} />
-          </button>
-        </nav>
-      </header>
-      {menuOpen && (
-        <nav
-          id="mobile-menu"
-          className={`fixed inset-0 z-40 flex flex-col items-center justify-center ${theme.spacing.gap.lg} ${theme.colors.background}/80 ${theme.colors.backdropBlur} md:hidden ${theme.transition.default}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile navigation"
-        >
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.to}
-              end
+              ))}
+              <a
+                href="/resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-200"
+              >
+                Resume
+              </a>
+            </div>
+
+            {/* Mobile menu button - Always visible and clickable */}
+            <button
               onClick={toggleMenu}
-              className={({ isActive }) =>
-                `${theme.typography.heading.h3} ${theme.transition.default} ${
-                  isActive
-                    ? theme.colors.text.primary
-                    : `${theme.colors.text.secondary} hover:${theme.colors.text.primary}`
-                }`
-              }
+              className="lg:hidden p-2 text-gray-300 hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg relative z-[10001]"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
             >
-              {link.name}
-            </NavLink>
-          ))}
-        </nav>
-      )}
+              <motion.div
+                initial={false}
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Icon name={isOpen ? "X" : "Menu"} size={24} />
+              </motion.div>
+            </button>
+          </nav>
+        </div>
+      </header>
     </>
   );
 };

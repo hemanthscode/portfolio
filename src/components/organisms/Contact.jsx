@@ -1,204 +1,212 @@
-import React, { memo, useState, useRef } from "react";
-import Input from "../atoms/Input";
+import React, { memo, useState } from "react";
+import { motion } from "framer-motion";
 import Button from "../atoms/Button";
 import Icon from "../atoms/Icon";
-import DOMPurify from "dompurify";
-import emailjs from "@emailjs/browser";
-import { theme } from "../../constants/theme";
-
-const initialForm = { name: "", email: "", message: "" };
+import Input from "../atoms/Input";
+import { contactLinks } from "../../data";
+import emailjs from '@emailjs/browser';
+import DOMPurify from 'dompurify';
 
 /**
- * Contact section with form and toast notifications.
- * @returns {JSX.Element}
- * @example
- * <Contact />
+ * Contact section with EmailJS form and social links.
+ * @returns {JSX.Element} Contact component
  */
 const Contact = () => {
-  const [form, setForm] = useState(initialForm);
-  const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState({ type: "", message: "" });
-  const [sending, setSending] = useState(false);
-  const toastTimer = useRef();
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [loading, setLoading] = useState(false);
 
-  const clearToast = () => {
-    setToast({ type: "", message: "" });
-  };
+  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-  const showToast = (type, message) => {
-    clearTimeout(toastTimer.current);
-    setToast({ type, message });
-    toastTimer.current = setTimeout(clearToast, 5000);
-  };
+  if (!serviceId || !templateId || !publicKey) {
+    console.error('EmailJS configuration is missing from .env');
+  }
 
-  const handleChange = ({ target: { name, value } }) => {
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: null }));
-    clearToast();
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.name.trim()) errs.name = "Name is required";
-    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/i.test(form.email.trim()))
-      errs.email = "Valid email is required";
-    if (!form.message.trim()) errs.message = "Message is required";
-    return errs;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const sanitizedValue = DOMPurify.sanitize(value);
+    setForm({ ...form, [name]: sanitizedValue });
+    if (status.message) {
+      setStatus({ type: "", message: "" });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    clearToast();
-    setSending(true);
-
-    const fieldErrors = validate();
-    if (Object.keys(fieldErrors).length) {
-      setErrors(fieldErrors);
-      setSending(false);
+    if (!form.name || !form.email || !form.message) {
+      setStatus({ type: "error", message: "All fields are required" });
       return;
     }
-
-    const { VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, VITE_EMAILJS_PUBLIC_KEY } =
-      import.meta.env;
-
-    if (!VITE_EMAILJS_SERVICE_ID || !VITE_EMAILJS_TEMPLATE_ID || !VITE_EMAILJS_PUBLIC_KEY) {
-      showToast("error", "Service error: Contact admin.");
-      setSending(false);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setStatus({ type: "error", message: "Invalid email format" });
       return;
     }
-
-    const payload = {
-      name: DOMPurify.sanitize(form.name.trim()),
-      email: DOMPurify.sanitize(form.email.trim()),
-      message: DOMPurify.sanitize(form.message.trim()),
-      time: new Date().toISOString(),
-      title: "Portfolio Contact Form",
-    };
+    setLoading(true);
 
     try {
-      await emailjs.send(
-        VITE_EMAILJS_SERVICE_ID,
-        VITE_EMAILJS_TEMPLATE_ID,
-        payload,
-        VITE_EMAILJS_PUBLIC_KEY
-      );
-      setForm(initialForm);
-      showToast("success", "Message sent! I'll get back to you soon.");
-    } catch (err) {
-      console.error("EmailJS error:", err);
-      showToast("error", "Failed to send message. Please try again.");
+      await emailjs.send(serviceId, templateId, form, publicKey);
+      setStatus({ 
+        type: "success", 
+        message: "Thanks for reaching out! I'll get back to you within 24 hours." 
+      });
+      setForm({ name: "", email: "", message: "" });
+    } catch (error) {
+      setStatus({ 
+        type: "error", 
+        message: "Failed to send message. Please try again later." 
+      });
     } finally {
-      setSending(false);
+      setLoading(false);
     }
   };
 
   return (
-    <section
-      id="contact"
-      className={`w-full ${theme.spacing.container} ${theme.spacing.section} min-h-screen flex items-center justify-center ${theme.colors.background}`}
-      aria-labelledby="contact-heading"
-      role="region"
-    >
-      <div className={`max-w-3xl mx-auto flex flex-col ${theme.spacing.gap.lg} text-center`}>
-        <div className={`flex flex-col ${theme.spacing.gap.sm}`}>
-          <h2 id="contact-heading" className={`${theme.typography.heading.h2}`}>
-            Get in Touch
+    <section id="contact" className="py-20 lg:py-32 bg-gray-950 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 -right-20 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-16 mobile-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-full mb-6">
+            <Icon name="Mail" size={16} className="text-blue-400" />
+            <span className="text-sm text-gray-300">Get In Touch</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-100 mb-6">
+            Let's <span className="gradient-text">Connect</span>
           </h2>
-          <p className={`${theme.typography.body.base} max-w-xl mx-auto ${theme.colors.text.secondary}`}>
-            Have a project in mind? Let&apos;s collaborate! Send me a message and I&apos;ll get back to you soon.
+          <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+            Ready to bring your ideas to life? Let's discuss your project and create something amazing together.
           </p>
         </div>
-        <div
-          className={`w-full max-w-xl mx-auto flex flex-col ${theme.spacing.gap.md} text-left`}
-          role="form"
-          aria-label="Contact form"
-        >
-          <Input
-            id="name"
-            name="name"
-            placeholder="Your Name"
-            value={form.name}
-            onChange={handleChange}
-            error={errors.name}
-            autoComplete="name"
-            disabled={sending}
-            required
-          />
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Your Email"
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-            autoComplete="email"
-            disabled={sending}
-            required
-          />
-          <div className="relative w-full">
-            <label htmlFor="message" className="sr-only">
-              Message
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              placeholder="Your Message"
-              value={form.message}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 h-32 resize-none ${theme.borderRadius.default} ${theme.colors.border} ${theme.colors.background} ${theme.typography.body.base} ${theme.colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 ${theme.colors.focusRing} ${theme.transition.default} ${
-                errors.message ? theme.colors.error : ""
-              } disabled:opacity-50`}
-              aria-invalid={!!errors.message}
-              aria-describedby={errors.message ? "message-error" : undefined}
-              disabled={sending}
-              required
-            />
-            {errors.message && (
-              <p
-                id="message-error"
-                className={`${theme.typography.body.sm} mt-1 ${theme.colors.text.error}`}
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(errors.message) }}
-              />
-            )}
+
+        <div className="grid lg:grid-cols-5 gap-12">
+          {/* Contact Form */}
+          <div className="lg:col-span-3 mobile-center">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-3xl p-8 lg:p-12">
+              <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center lg:text-left">
+                Send me a message
+              </h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <Input
+                    id="name"
+                    name="name"
+                    label="Name"
+                    placeholder="Your name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
+                  
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    label="Email"
+                    placeholder="your@email.com"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Message *</label>
+                  <textarea
+                    name="message"
+                    value={form.message}
+                    onChange={handleChange}
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none transition-colors duration-200"
+                    placeholder="Tell me about your project..."
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  loading={loading}
+                  icon={loading ? "Loader2" : "Send"}
+                  className="w-full"
+                >
+                  {loading ? "Sending..." : "Send Message"}
+                </Button>
+                
+                {status.message && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 ${status.type === 'success' ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'} rounded-xl flex items-start gap-3`}
+                  >
+                    <Icon name={status.type === 'success' ? "CheckCircle" : "AlertCircle"} size={20} className="flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">{status.message}</span>
+                  </motion.div>
+                )}
+              </form>
+            </div>
           </div>
-          <Button
-            variant="primary"
-            type="submit"
-            aria-label={sending ? "Sending message..." : "Submit contact form"}
-            className={`self-center min-w-32 ${sending ? "cursor-not-allowed" : ""}`}
-            disabled={sending}
-            onClick={handleSubmit}
-          >
-            {sending ? (
-              <span className="flex items-center gap-2">
-                <Icon name="LoaderCircle" size={16} className="animate-spin" />
-                Sending...
-              </span>
-            ) : (
-              "Send Message"
-            )}
-          </Button>
-          {toast.message && (
-            <div
-              role="status"
-              aria-live="polite"
-              className={`p-4 ${theme.borderRadius.default} ${theme.colors.border} ${theme.shadow.default} animate-fade-in ${theme.typography.body.sm} text-center ${
-                toast.type === "success"
-                  ? theme.colors.toastSuccess
-                  : theme.colors.toastError
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Icon
-                  name={toast.type === "success" ? "CheckCircle" : "AlertCircle"}
-                  size={20}
-                  className={toast.type === "success" ? theme.colors.text.success : theme.colors.text.error}
-                />
-                <span>{toast.message}</span>
+
+          {/* Contact Info */}
+          <div className="lg:col-span-2 space-y-6 mobile-center">
+            {/* Contact Methods */}
+            <div>
+              <div className="space-y-4">
+                {contactLinks.map((link, index) => (
+                  <motion.a
+                    key={link.name}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ x: 5 }}
+                    className="flex items-center gap-4 p-4 bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl hover:bg-gray-800/50 hover:border-blue-500/30 transition-all duration-300 group"
+                  >
+                    <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-blue-600/20 transition-colors duration-300 flex-shrink-0">
+                      <Icon name={link.icon} size={20} className="text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-200 group-hover:text-blue-400 transition-colors duration-300">
+                        {link.name}
+                      </h4>
+                      <p className="text-sm text-gray-400 truncate">{link.label}</p>
+                    </div>
+                    <Icon name="ExternalLink" size={16} className="text-gray-500 group-hover:text-gray-300 transition-colors duration-300 flex-shrink-0" />
+                  </motion.a>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Info Cards */}
+            <div className="space-y-4">
+              {/* Availability */}
+              <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-xl p-6 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+                  <h4 className="text-lg font-bold text-gray-100">Available for work</h4>
+                </div>
+                <p className="text-gray-300 text-sm">
+                  I'm currently accepting new projects and collaborations.
+                </p>
+              </div>
+
+              {/* Response Time */}
+              <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6 text-center">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Icon name="Clock" size={20} className="text-blue-400" />
+                </div>
+                <h4 className="text-lg font-bold text-gray-100 mb-2">Quick Response</h4>
+                <p className="text-sm text-gray-400">I typically respond within 24 hours</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,72 +1,56 @@
 import React, { memo } from "react";
+import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 import PropTypes from "prop-types";
 import Icon from "./Icon";
-import { theme } from "../../constants/theme";
 
-/**
- * Versatile button with internal/external link support.
- * @param {Object} props
- * @param {'primary' | 'secondary' | 'outline' | 'ghost'} props.variant - Button style variant.
- * @param {string} props.to - Navigation or external URL.
- * @param {string} props.target - Link target (_self, _blank, etc.).
- * @param {string} props.icon - Lucide icon name.
- * @param {string} props.className - Additional Tailwind classes.
- * @param {React.ReactNode} props.children - Button content.
- * @param {boolean} props.disabled - Disable button.
- * @param {string} props.type - Button type (button, submit, reset).
- * @param {Object} props.rest - Additional props for the underlying element.
- * @returns {JSX.Element}
- * @example
- * <Button variant="primary" to="/work" icon="ExternalLink">View Work</Button>
- */
-const Button = ({
-  variant = "primary",
-  to,
-  target = "_self",
-  icon,
-  className = "",
-  children,
-  disabled = false,
-  type = "button",
-  ...rest
-}) => {
-  const isDisabled = disabled || to === "#" || to === "";
-  const baseStyles = `inline-flex items-center justify-center px-4 py-2 ${theme.borderRadius.default} ${theme.typography.body.base} ${theme.transition.default} disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme.colors.focusRing}`;
-  const buttonStyles = `${baseStyles} ${theme.colors[variant] || theme.colors.primary} ${className}`;
-  const iconStyles = variant === "primary" ? theme.colors.iconPrimary : theme.colors.iconSecondary;
-  const isExternal = to && /^https?:\/\//.test(to);
+const Button = ({ variant = "primary", size = "md", to, href, icon, children, className = "", disabled = false, loading = false, ...props }) => {
+  const baseStyles = "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-950";
+  
+  const variants = {
+    primary: "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500 focus:ring-blue-500",
+    secondary: "bg-gray-800 text-gray-100 border border-gray-700 hover:bg-gray-700 hover:text-white focus:ring-gray-600",
+    ghost: "text-gray-300 hover:bg-gray-800/50 hover:text-white focus:ring-gray-600"
+  };
+
+  const sizes = {
+    sm: "px-3 py-2 text-sm",
+    md: "px-4 py-2.5 text-sm",
+    lg: "px-6 py-3 text-base"
+  };
+
+  const disabledStyles = disabled || loading ? "opacity-50 cursor-not-allowed" : "";
+  
+  const classNames = `${baseStyles} ${variants[variant]} ${sizes[size]} ${disabledStyles} ${className}`;
 
   const content = (
     <>
-      {icon && <Icon name={icon} size={20} className={`mr-2 ${iconStyles}`} />}
-      {children}
+      {icon && !loading && <Icon name={icon} size={size === "lg" ? 20 : 16} />}
+      {loading && <Icon name="Loader2" size={size === "lg" ? 20 : 16} className="animate-spin" />}
+      <span>{children}</span>
     </>
   );
 
-  const commonProps = {
-    className: buttonStyles,
-    "aria-label": typeof children === "string" ? children : rest["aria-label"] || "Button",
-    "aria-disabled": isDisabled,
-    disabled: isDisabled,
-    ...rest,
-  };
-
-  if (!to) {
+  if (to) {
     return (
-      <button type={type} {...commonProps}>
+      <NavLink
+        to={to}
+        className={({ isActive }) => `${classNames} ${isActive && variant === "ghost" ? "text-blue-400" : ""}`}
+        {...props}
+      >
         {content}
-      </button>
+      </NavLink>
     );
   }
 
-  if (isExternal) {
+  if (href) {
     return (
       <a
-        href={to}
-        target={target}
-        rel={target === "_blank" ? "noopener noreferrer" : undefined}
-        {...commonProps}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={classNames}
+        {...props}
       >
         {content}
       </a>
@@ -74,21 +58,28 @@ const Button = ({
   }
 
   return (
-    <NavLink to={to} end {...commonProps}>
+    <motion.button
+      whileHover={disabled || loading ? {} : { scale: 1.05 }}
+      whileTap={disabled || loading ? {} : { scale: 0.95 }}
+      className={classNames}
+      disabled={disabled || loading}
+      {...props}
+    >
       {content}
-    </NavLink>
+    </motion.button>
   );
 };
 
 Button.propTypes = {
-  variant: PropTypes.oneOf(["primary", "secondary", "outline", "ghost"]),
+  variant: PropTypes.oneOf(["primary", "secondary", "ghost"]),
+  size: PropTypes.oneOf(["sm", "md", "lg"]),
   to: PropTypes.string,
-  target: PropTypes.string,
+  href: PropTypes.string,
   icon: PropTypes.string,
-  className: PropTypes.string,
   children: PropTypes.node.isRequired,
+  className: PropTypes.string,
   disabled: PropTypes.bool,
-  type: PropTypes.oneOf(["button", "submit", "reset"]),
+  loading: PropTypes.bool
 };
 
 export default memo(Button);

@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useEffect } from "react";
+import React, { memo, useLayoutEffect, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./components/molecules/Layout";
 import HomePage from "./pages/HomePage";
@@ -7,33 +7,49 @@ import WorkPage from "./pages/WorkPage";
 import ContactPage from "./pages/ContactPage";
 import ProjectPage from "./pages/ProjectPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import { theme } from "./constants/theme";
 
-/**
- * Main application component with routing and scroll-to-top on route change.
- * @returns {JSX.Element}
- * @example
- * <App />
- */
 const App = () => {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // Disable browser scroll restoration and handle scroll on route change
+  useLayoutEffect(() => {
+    // Disable browser's default scroll restoration
+    if (window.history.scrollRestoration) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    // Scroll to top immediately on route change
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
+
+  // Ensure scroll to top on initial load and browser refresh
+  useEffect(() => {
+    const handleLoad = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    };
+
+    // Run on mount
+    handleLoad();
+
+    // Handle browser refresh
+    window.addEventListener("load", handleLoad);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener("load", handleLoad);
+    };
+  }, []);
 
   return (
     <Layout>
-      <Suspense fallback={<div className={`min-h-screen ${theme.colors.background} animate-pulse`} />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/work" element={<WorkPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/work/:slug" element={<ProjectPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/work" element={<WorkPage />} />
+        <Route path="/work/:slug" element={<ProjectPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </Layout>
   );
 };

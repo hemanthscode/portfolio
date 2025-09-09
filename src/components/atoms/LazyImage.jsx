@@ -1,50 +1,74 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import PropTypes from "prop-types";
-import { theme } from "../../constants/theme";
 
-/**
- * Lazy-loaded image with responsive sizes and error handling.
- * @param {Object} props
- * @param {string | object} props.src - Image source (URL or imported module).
- * @param {string} props.alt - Image alt text.
- * @param {string} props.className - Tailwind classes.
- * @param {string} props.placeholder - Fallback image URL.
- * @param {Object} props.rest - Additional props for the image.
- * @returns {JSX.Element}
- * @example
- * <LazyImage src="/image.jpg" alt="Project image" className="w-full h-full" />
- */
-const LazyImage = ({
-  src,
-  alt = "Image",
-  className = "",
-  placeholder = "https://via.placeholder.com/400x224?text=Loading...",
-  ...rest
-}) => {
-  const [hasError, setHasError] = useState(false);
-  const srcSet = typeof src === "string" ? `${src}?w=400 400w, ${src}?w=800 800w, ${src}?w=1200 1200w` : undefined;
-  const sizes = "(max-width: 640px) 400px, (max-width: 1024px) 800px, 1200px";
+const LazyImage = ({ src, alt, className = "", ...props }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [inView, setInView] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+
+    const currentRef = imgRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
 
   return (
-    <img
-      src={hasError ? placeholder : typeof src === "string" ? src : src}
-      srcSet={srcSet}
-      sizes={sizes}
-      alt={alt}
-      className={`w-full h-full object-cover ${theme.transition.default} ${className}`}
-      loading="lazy"
-      onError={() => setHasError(true)}
-      aria-describedby={hasError ? "image-error" : undefined}
-      {...rest}
-    />
+    <div ref={imgRef} className={`relative overflow-hidden bg-gray-800 ${className}`}>
+      {!loaded && !error && inView && (
+        <div className="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="absolute inset-0 bg-gray-800 flex items-center justify-center text-gray-500 text-sm">
+          <span>Failed to load</span>
+        </div>
+      )}
+      
+      {!inView && (
+        <div className="absolute inset-0 bg-gray-800"></div>
+      )}
+      
+      {inView && (
+        <motion.img
+          src={src}
+          alt={alt}
+          sizes="(max-width: 640px) 100vw, 50vw"
+          className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          loading="lazy"
+          {...props}
+        />
+      )}
+    </div>
   );
 };
 
 LazyImage.propTypes = {
-  src: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
-  alt: PropTypes.string,
-  className: PropTypes.string,
-  placeholder: PropTypes.string,
+  src: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired,
+  className: PropTypes.string
 };
 
 export default memo(LazyImage);
