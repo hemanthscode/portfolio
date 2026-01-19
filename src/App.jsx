@@ -1,43 +1,36 @@
-import React, { memo, useLayoutEffect, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import Layout from "./components/molecules/Layout";
-import HomePage from "./pages/HomePage";
-import AboutPage from "./pages/AboutPage";
-import WorkPage from "./pages/WorkPage";
-import ContactPage from "./pages/ContactPage";
-import ProjectPage from "./pages/ProjectPage";
-import NotFoundPage from "./pages/NotFoundPage";
+import { memo, useEffect, useLayoutEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Layout } from '@/components/layout';
+import {
+  HomePage,
+  AboutPage,
+  WorkPage,
+  ProjectDetailPage,
+  ContactPage,
+  NotFoundPage,
+} from '@/pages';
 
+/**
+ * Main App component
+ * Handles routing and scroll behavior
+ */
 const App = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
 
-  // Disable browser scroll restoration and handle scroll on route change
+  // Scroll to top on route change
   useLayoutEffect(() => {
-    // Disable browser's default scroll restoration
-    if (window.history.scrollRestoration) {
-      window.history.scrollRestoration = "manual";
+    // Disable browser's scroll restoration
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
     }
 
-    // Scroll to top immediately on route change
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname]);
+    // Scroll to top immediately
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
-  // Ensure scroll to top on initial load and browser refresh
+  // Handle initial load scroll position
   useEffect(() => {
-    const handleLoad = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    };
-
-    // Run on mount
-    handleLoad();
-
-    // Handle browser refresh
-    window.addEventListener("load", handleLoad);
-
-    // Cleanup event listener
-    return () => {
-      window.removeEventListener("load", handleLoad);
-    };
+    window.scrollTo(0, 0);
   }, []);
 
   return (
@@ -46,7 +39,7 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/work" element={<WorkPage />} />
-        <Route path="/work/:slug" element={<ProjectPage />} />
+        <Route path="/work/:slug" element={<ProjectDetailPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
